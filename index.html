@@ -1,184 +1,577 @@
-<!--INSTITUTO FEDERAL DE SANTA CATARINA - DEPARTAMENTO DE INGRESSO-->
-<!--Autores: Antonielly Garcia Rodrigues, Alex Helder Cordeiro de Oliveira-->
-<!--20/01/2011-->
-<!--EM CASO DE AUDITORIA:
-Da maneira como este cÛdigo-fonte se encontra implementado, a semente utilizada na geraÁ„o de n˙meros pseudo-aleatÛrios È o tempo (quantos milissegundos se passaram desde 1 de Janeiro de 1970 atÈ o momento em que o bot„o "Gerar lista" foi clicado). Assim, cada vez que se clica no bot„o "Gerar lista", uma lista diferente È gerada, sendo o tempo o fator que torna a lista pseudo-aleatÛria em lista realmente aleatÛria.
-Caso deseje verificar a autenticidade da lista impressa publicada usando a semente fixa que aparece ao final dela, siga os seguintes passos:
-1) FaÁa busca neste cÛdigo-fonte por trÍs asteriscos (***), contidos em coment·rios, e siga todas as instruÁıes de alteraÁ„o;
-2) Utilize a semente de geraÁ„o de n˙meros pseudo-aleatÛrios que lhe foi fornecida ao final da lista impressa em papel e assinada pelas testemunhas do processo seletivo;
-3) Efetue a comparaÁ„o da saÌda do programa com a lista impressa publicada.-->
-<?xml version="1.0" encoding="ISO-8859-1" ?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
+<!DOCTYPE html>
+<html lang="pt-BR">
 <head>
-<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
-<title>Sorteio EletrÙnico - Instituto Federal de EducaÁ„o, CiÍncia e Tecnologia de Santa Catarina (IFSC)</title>
-<script src=seedrandom.js></script>
-<script>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sistema de Sorteio Eletr√¥nico - ANAC</title>
+  <script src="seedrandom.js"></script>
+  <style>
+    :root {
+      --azul-anac: #005ea8;
+      --azul-escuro: #003b70;
+      --cinza-fundo: #f3f6f9;
+      --cinza-borda: #d7dee8;
+      --texto: #1f2937;
+      --verde: #1f8f4d;
+      --vermelho: #b42318;
+      --branco: #ffffff;
+    }
 
-function gereEImprimaResultado() {
-	var nomeCurso = document.sorteio.nomeCurso.value;
-	var inscritos = document.sorteio.totalInscritos.value;
-	var semente;
-	if(document.sorteio.sementeManual.checked) {
-		semente = parseInt(document.sorteio.semente.value);
-	} else {
-		semente = new Date().getTime();
-	}
-	var vagas = document.sorteio.vagas.value;
-	var embaralhada = gereListaEmbaralhada(inscritos, semente);
-	//var pontoImpressao = //document.sorteio.textArea;
-	var pontoImpressao = document.getElementById('resultado');
-	imprimaResultado(nomeCurso, semente, embaralhada, vagas, pontoImpressao);
-}
+    * { box-sizing: border-box; }
 
-function gereListaEmbaralhada(inscritos, semente){
-	Math.seedrandom(semente);
-	var consumida = new Array(inscritos);
-	var resultado = new Array(inscritos);
-	for(var i = 0; i < inscritos; i++) {
-		consumida[i] = 1+i;
-		resultado[i] = 0;
-	}
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: var(--cinza-fundo);
+      color: var(--texto);
+    }
 
-	for(var i = 0; i < inscritos; i++) {
-		var aleatorio = Math.floor(Math.random()*inscritos);
-		while(consumida[aleatorio] == 0) {
-			aleatorio = (1+aleatorio)%inscritos;
-		}
-		resultado[i] = consumida[aleatorio];
-		consumida[aleatorio] = 0;
-	}
-	
-	return resultado;
-}
+    header {
+      background: linear-gradient(135deg, var(--azul-escuro), var(--azul-anac));
+      color: white;
+      padding: 28px 20px;
+      text-align: center;
+      border-bottom: 5px solid #f4c542;
+    }
 
-function imprimaResultado(nomeCurso, semente, embaralhada, vagas, pontoImpressao) {
-	var conteudo = "";
-	conteudo += gereVisualDeCabecalhoDaLista(nomeCurso, semente);
-	conteudo += gereVisualDeListaDeSelecionados(embaralhada, vagas);
-	conteudo += gereVisualDeCabecalhoDaEspera(nomeCurso);
-	conteudo += gereVisualDeListaDeEspera(embaralhada, vagas);
-	conteudo += gereVisualDeFim();
-	conteudo += gereVisualDeInformacoesTecnicas(semente);
-	//pontoImpressao.value = conteudo;
-	pontoImpressao.innerHTML = conteudo;
-}
+    header .sigla {
+      font-size: 34px;
+      font-weight: 800;
+      letter-spacing: 2px;
+      margin-bottom: 6px;
+    }
 
-function gereVisualDeCabecalhoDaLista(nomeCurso, semente){
-	var data = new Date(semente);
-	return "Hor·rio do sorteio: " + data.getDate() + "/" + (pad(data.getMonth()+1)) + "/" + pad(data.getFullYear()) + ", " + pad(data.getHours()) + ":" + pad(data.getMinutes()) + ":" + pad(data.getSeconds()) + ".<H1>Lista <b>OFICIAL</b> do sorteio - " + nomeCurso + "</H1><H2>Primeira chamada</H2>";
+    header .orgao {
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
 
-}
+    header .titulo {
+      font-size: 24px;
+      font-weight: 700;
+    }
 
-function gereVisualDeListaDeSelecionados(lista, ultimaPosicao){
-	var conteudo = "";
-	for(var i = 0; i < ultimaPosicao; i++){
-		conteudo += "<font size='6'><tt><b>" + lista[i] + "</b>" + padSpaces(lista[i], lista.length) + "(" + (i+1) + "∫)</tt></font>";
+    .container {
+      max-width: 1050px;
+      margin: 28px auto;
+      padding: 0 18px;
+    }
 
-		if(i < ultimaPosicao - 1){
-			conteudo += "<br/>";
-		}
-	}
-	return conteudo;
-}
+    .card {
+      background: var(--branco);
+      border: 1px solid var(--cinza-borda);
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+      margin-bottom: 22px;
+    }
 
-function gereVisualDeCabecalhoDaEspera(nomeCurso){
-	return "<H2>Lista de Espera - " + nomeCurso + "</H2>";
-}
+    .card h2 {
+      margin-top: 0;
+      color: var(--azul-escuro);
+      font-size: 22px;
+      border-bottom: 1px solid var(--cinza-borda);
+      padding-bottom: 12px;
+    }
 
-function gereVisualDeListaDeEspera(lista, ultimaPosicao){
-	var conteudo = "";
-	for(var i = ultimaPosicao; i < lista.length; i++){
-		conteudo += "<font size='5'><tt>" + lista[i] + padSpaces(lista[i], lista.length) + "(" + (parseInt(i)+1) + "∫)</tt></font>";
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 18px;
+    }
 
-		if(i < lista.length - 1){
-			conteudo += "<br/>";
-		}
-	}
-	return conteudo;
-}
+    .grid-3 {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+    }
 
-function gereVisualDeFim() {
-	return "<br/><b>FIM.</b>";
-}
+    label {
+      font-weight: 700;
+      display: block;
+      margin-bottom: 7px;
+    }
 
-function gereVisualDeInformacoesTecnicas(semente) {
-	var conteudo = "<H3>InformaÁıes tÈcnicas do sistema</H3>";
-	conteudo += "<b>platform:</b> " + navigator.platform + "<br/>";
-	conteudo += "<b>appName:</b> " + navigator.appName + "<br/>";
-	conteudo += "<b>appVersion:</b> " + navigator.appVersion + "<br/>";
-	conteudo += "<b>userAgent:</b> " + navigator.userAgent + "<br/>";
-	conteudo += "<b>Vers„o deste sistema:</b> 20/01/2011<br/>"
-	conteudo += "<b>Semente utilizada:</b> \"" + semente + "\"<br/>";
-	return conteudo;
-}
+    input[type="text"], input[type="number"] {
+      width: 100%;
+      padding: 11px 12px;
+      border: 1px solid var(--cinza-borda);
+      border-radius: 8px;
+      font-size: 15px;
+      background: white;
+    }
 
-function pad(number) {
-     return (number < 10 ? '0' : '') + number;
-   
-}
+    input:disabled {
+      background: #eef2f7;
+      color: #6b7280;
+    }
 
-function padSpaces(atual, maximo) {
-     var conteudo = "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;";
-     var espacosExtras = (maximo + "").length-(atual + "").length;
+    .checkbox-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-top: 22px;
+      font-weight: 700;
+    }
 
-     for(var i = 1; i <= espacosExtras; i++){
-        conteudo += "&nbsp;";
-     }
+    .actions {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
 
-     return conteudo;
-}
+    button {
+      border: none;
+      border-radius: 9px;
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
 
-</script>
+    .btn-primary {
+      background: var(--azul-anac);
+      color: white;
+    }
+
+    .btn-primary:hover { background: var(--azul-escuro); }
+
+    .btn-secondary {
+      background: #e8eef6;
+      color: var(--azul-escuro);
+      border: 1px solid var(--cinza-borda);
+    }
+
+    .btn-secondary:hover { background: #dbe7f5; }
+
+    .alerta {
+      display: none;
+      background: #fff3f0;
+      border: 1px solid #f4b5ad;
+      color: var(--vermelho);
+      padding: 12px;
+      border-radius: 8px;
+      margin-top: 16px;
+      font-weight: 700;
+    }
+
+    .resultado-header {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .info-box {
+      border: 1px solid var(--cinza-borda);
+      border-radius: 10px;
+      padding: 12px;
+      background: #fafcff;
+    }
+
+    .info-box small {
+      color: #667085;
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 700;
+    }
+
+    .info-box strong {
+      color: var(--azul-escuro);
+      word-break: break-word;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: white;
+    }
+
+    th {
+      background: var(--azul-escuro);
+      color: white;
+      text-align: left;
+      padding: 11px;
+    }
+
+    td {
+      border-bottom: 1px solid var(--cinza-borda);
+      padding: 10px 11px;
+    }
+
+    tr.primeira-chamada td {
+      font-weight: 700;
+      background: #f1f8f4;
+    }
+
+    .tag {
+      display: inline-block;
+      padding: 4px 9px;
+      border-radius: 999px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .tag-classificado {
+      background: #dff3e8;
+      color: var(--verde);
+    }
+
+    .tag-espera {
+      background: #eef2f7;
+      color: #475467;
+    }
+
+    .tecnico {
+      font-size: 13px;
+      color: #475467;
+      line-height: 1.6;
+    }
+
+    footer {
+      text-align: center;
+      color: #667085;
+      font-size: 13px;
+      padding: 26px 16px 40px;
+    }
+
+    .hidden { display: none; }
+
+    @media (max-width: 800px) {
+      .grid, .grid-3, .resultado-header {
+        grid-template-columns: 1fr;
+      }
+
+      header .sigla { font-size: 28px; }
+      header .titulo { font-size: 20px; }
+    }
+
+    @media print {
+      body { background: white; }
+      .no-print { display: none !important; }
+      .container { max-width: 100%; margin: 0; padding: 0; }
+      .card { box-shadow: none; border: none; padding: 0; }
+      header { color: #000; background: white; border-bottom: 2px solid #000; }
+      th { background: #eee !important; color: #000 !important; }
+    }
+  </style>
 </head>
 <body>
-<img src="logo.jpg" />
- <form name="sorteio">
-  <table border=0>
-   <tr>
-    <td>
-     Curso: 
-    </td>
-    <td colspan=3>
-    <input type="text" name="nomeCurso" size=75 maxlength=100>
-    </td>
-   </tr>
-   <tr>
-    <td>
-     Total de Inscritos: 
-    </td>
-    <td colspan=1>
-    <input type="text" name="totalInscritos" size=10 maxlength=5>
-    </td>
-    <td>
-     Vagas: 
-    </td>
-    <td colspan=2>
-    <input type="text" name="vagas" size=10 maxlength=5>
-    </td>
-   </tr>
-   <tr>
-    <td>
-    <input type="button" value="Gerar Lista" onclick="gereEImprimaResultado()">
-    </td>
-    <td width=270>
-<!--***EM CASO DE AUDITORIA: TROQUE O VALOR DE style DE 'visibility:hidden' para 'visibility:visible', e descomente o texto "Inserir semente manualmente", que aparece abaixo***-->
-    <input type="checkbox" name="sementeManual" onclick="document.sorteio.semente.disabled = !this.checked;" style='visibility:visible'>Inserir semente manualmente
-    </td>
-    <td>
-<!--***EM CASO DE AUDITORIA: Descomente o texto "Semente: ", que aparece abaixo***-->
-Semente:
-    </td>
-    <td>
-<!--***EM CASO DE AUDITORIA: TROQUE O VALOR DE style DE 'visibility:hidden' para 'visibility:visible'***-->
-    <input type="text" name="semente" size=20 maxlength=50 disabled style='visibility:visible'>
-    </td>
-   </tr>
-  </table>
-  <p id="resultado"></p>
- <!--<textarea name="textArea" rows=26 cols=92 readonly>
- </textarea>-->
- </form>
+  <header>
+    <div class="sigla">ANAC</div>
+    <div class="orgao">AG√äNCIA NACIONAL DE AVIA√á√ÉO CIVIL</div>
+    <div class="titulo">Sistema de Sorteio Eletr√¥nico</div>
+  </header>
+
+  <main class="container">
+    <section class="card no-print">
+      <h2>Dados do sorteio</h2>
+
+      <form id="formSorteio">
+        <div class="grid">
+          <div>
+            <label for="processoSei">Processo SEI</label>
+            <input type="text" id="processoSei" placeholder="Ex.: 00058.000000/2026-00" />
+          </div>
+          <div>
+            <label for="nomeSorteio">Curso / Bolsa / Evento</label>
+            <input type="text" id="nomeSorteio" placeholder="Ex.: Bolsa ENAC" />
+          </div>
+        </div>
+
+        <div class="grid-3" style="margin-top: 18px;">
+          <div>
+            <label for="totalInscritos">Total de candidatos habilitados</label>
+            <input type="number" id="totalInscritos" min="1" step="1" placeholder="Ex.: 10" />
+          </div>
+          <div>
+            <label for="vagas">Quantidade de vagas</label>
+            <input type="number" id="vagas" min="1" step="1" placeholder="Ex.: 3" />
+          </div>
+          <div>
+            <label for="dataReferencia">Data prevista do sorteio</label>
+            <input type="text" id="dataReferencia" placeholder="Ex.: 06/07/2026" />
+          </div>
+        </div>
+
+        <div class="checkbox-line">
+          <input type="checkbox" id="usarSementeManual" />
+          <span>Informar semente manualmente para auditoria ou reprodu√ß√£o do sorteio</span>
+        </div>
+
+        <div style="margin-top: 14px; max-width: 420px;">
+          <label for="semente">Semente</label>
+          <input type="text" id="semente" disabled placeholder="Gerada automaticamente pelo sistema" />
+        </div>
+
+        <div class="actions">
+          <button type="button" class="btn-primary" onclick="realizarSorteio()">Realizar sorteio</button>
+          <button type="button" class="btn-secondary" onclick="limparFormulario()">Limpar</button>
+        </div>
+
+        <div id="mensagemErro" class="alerta"></div>
+      </form>
+    </section>
+
+    <section id="resultado" class="card hidden">
+      <h2>Resultado do Sorteio</h2>
+
+      <div class="resultado-header">
+        <div class="info-box">
+          <small>Curso / Bolsa / Evento</small>
+          <strong id="resNomeSorteio"></strong>
+        </div>
+        <div class="info-box">
+          <small>Processo SEI</small>
+          <strong id="resProcessoSei"></strong>
+        </div>
+        <div class="info-box">
+          <small>Data e hora de realiza√ß√£o</small>
+          <strong id="resDataHora"></strong>
+        </div>
+        <div class="info-box">
+          <small>Semente utilizada</small>
+          <strong id="resSemente"></strong>
+        </div>
+      </div>
+
+      <div class="resultado-header">
+        <div class="info-box">
+          <small>Total de candidatos</small>
+          <strong id="resTotal"></strong>
+        </div>
+        <div class="info-box">
+          <small>Quantidade de vagas</small>
+          <strong id="resVagas"></strong>
+        </div>
+        <div class="info-box">
+          <small>Crit√©rio</small>
+          <strong>N√∫meros atribu√≠dos previamente aos candidatos</strong>
+        </div>
+        <div class="info-box">
+          <small>Tipo de semente</small>
+          <strong id="resTipoSemente"></strong>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Classifica√ß√£o</th>
+            <th>N¬∫ sorteado</th>
+            <th>Situa√ß√£o</th>
+          </tr>
+        </thead>
+        <tbody id="tabelaResultado"></tbody>
+      </table>
+
+      <div class="actions no-print">
+        <button class="btn-primary" onclick="window.print()">Imprimir / Salvar em PDF</button>
+        <button class="btn-secondary" onclick="copiarResumo()">Copiar resumo</button>
+      </div>
+    </section>
+
+    <section id="informacoesTecnicas" class="card hidden">
+      <h2>Informa√ß√µes t√©cnicas para auditoria</h2>
+      <div class="tecnico" id="textoTecnico"></div>
+    </section>
+  </main>
+
+  <footer>
+    Sistema de Sorteio Eletr√¥nico - ANAC | Vers√£o 1.0<br />
+    Sorteio reproduz√≠vel por semente num√©rica, com utiliza√ß√£o de algoritmo pseudoaleat√≥rio baseado em seedrandom.js.
+  </footer>
+
+  <script>
+    document.getElementById('usarSementeManual').addEventListener('change', function () {
+      const campoSemente = document.getElementById('semente');
+      campoSemente.disabled = !this.checked;
+      campoSemente.placeholder = this.checked ? 'Informe a semente de 13 d√≠gitos' : 'Gerada automaticamente pelo sistema';
+      if (!this.checked) campoSemente.value = '';
+    });
+
+    function realizarSorteio() {
+      esconderErro();
+
+      const processoSei = document.getElementById('processoSei').value.trim() || 'N√£o informado';
+      const nomeSorteio = document.getElementById('nomeSorteio').value.trim();
+      const totalInscritos = parseInt(document.getElementById('totalInscritos').value, 10);
+      const vagas = parseInt(document.getElementById('vagas').value, 10);
+      const usarSementeManual = document.getElementById('usarSementeManual').checked;
+      const dataReferencia = document.getElementById('dataReferencia').value.trim();
+      let semente;
+      let tipoSemente;
+
+      if (!nomeSorteio) {
+        mostrarErro('Informe o nome do curso, bolsa ou evento.');
+        return;
+      }
+
+      if (!Number.isInteger(totalInscritos) || totalInscritos <= 0) {
+        mostrarErro('Informe um total de candidatos v√°lido.');
+        return;
+      }
+
+      if (!Number.isInteger(vagas) || vagas <= 0) {
+        mostrarErro('Informe uma quantidade de vagas v√°lida.');
+        return;
+      }
+
+      if (vagas > totalInscritos) {
+        mostrarErro('A quantidade de vagas n√£o pode ser maior que o total de candidatos.');
+        return;
+      }
+
+      if (usarSementeManual) {
+        const valorSemente = document.getElementById('semente').value.trim();
+        if (!/^\d+$/.test(valorSemente)) {
+          mostrarErro('A semente manual deve conter apenas n√∫meros.');
+          return;
+        }
+        semente = parseInt(valorSemente, 10);
+        tipoSemente = 'Manual';
+      } else {
+        semente = new Date().getTime();
+        tipoSemente = 'Autom√°tica, gerada por timestamp Unix em milissegundos';
+      }
+
+      const lista = gereListaEmbaralhada(totalInscritos, semente);
+      const dataHora = formatarDataHora(new Date(semente));
+
+      preencherResultado({
+        processoSei,
+        nomeSorteio,
+        totalInscritos,
+        vagas,
+        semente,
+        tipoSemente,
+        dataHora,
+        dataReferencia,
+        lista
+      });
+    }
+
+    // Algoritmo mantido conforme a l√≥gica do sistema original do IFSC:
+    // embaralhamento pseudoaleat√≥rio reproduz√≠vel a partir de uma semente.
+    function gereListaEmbaralhada(inscritos, semente) {
+      Math.seedrandom(semente);
+      const consumida = new Array(inscritos);
+      const resultado = new Array(inscritos);
+
+      for (let i = 0; i < inscritos; i++) {
+        consumida[i] = 1 + i;
+        resultado[i] = 0;
+      }
+
+      for (let i = 0; i < inscritos; i++) {
+        let aleatorio = Math.floor(Math.random() * inscritos);
+        while (consumida[aleatorio] === 0) {
+          aleatorio = (1 + aleatorio) % inscritos;
+        }
+        resultado[i] = consumida[aleatorio];
+        consumida[aleatorio] = 0;
+      }
+
+      return resultado;
+    }
+
+    function preencherResultado(dados) {
+      document.getElementById('resultado').classList.remove('hidden');
+      document.getElementById('informacoesTecnicas').classList.remove('hidden');
+
+      document.getElementById('resNomeSorteio').textContent = dados.nomeSorteio;
+      document.getElementById('resProcessoSei').textContent = dados.processoSei;
+      document.getElementById('resDataHora').textContent = dados.dataHora;
+      document.getElementById('resSemente').textContent = dados.semente;
+      document.getElementById('resTotal').textContent = dados.totalInscritos;
+      document.getElementById('resVagas').textContent = dados.vagas;
+      document.getElementById('resTipoSemente').textContent = dados.tipoSemente;
+
+      const corpo = document.getElementById('tabelaResultado');
+      corpo.innerHTML = '';
+
+      dados.lista.forEach((numero, indice) => {
+        const tr = document.createElement('tr');
+        const classificado = indice < dados.vagas;
+        if (classificado) tr.classList.add('primeira-chamada');
+
+        tr.innerHTML = `
+          <td>${indice + 1}¬∫</td>
+          <td><strong>${numero}</strong></td>
+          <td><span class="tag ${classificado ? 'tag-classificado' : 'tag-espera'}">${classificado ? 'Primeira chamada' : 'Lista de espera'}</span></td>
+        `;
+        corpo.appendChild(tr);
+      });
+
+      document.getElementById('textoTecnico').innerHTML = `
+        <p><strong>Semente utilizada:</strong> ${dados.semente}</p>
+        <p><strong>Data/hora correspondente √† semente:</strong> ${dados.dataHora}</p>
+        <p><strong>Total de candidatos habilitados:</strong> ${dados.totalInscritos}</p>
+        <p><strong>Quantidade de vagas:</strong> ${dados.vagas}</p>
+        <p><strong>Algoritmo:</strong> embaralhamento pseudoaleat√≥rio reproduz√≠vel a partir de semente num√©rica, utilizando seedrandom.js.</p>
+        <p><strong>Auditoria:</strong> para reproduzir o resultado, informe os mesmos dados de entrada: total de candidatos, quantidade de vagas e semente utilizada.</p>
+        <p><strong>Navegador:</strong> ${navigator.userAgent}</p>
+      `;
+
+      window.__ultimoSorteio = dados;
+      document.getElementById('resultado').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function formatarDataHora(data) {
+      const dia = String(data.getDate()).padStart(2, '0');
+      const mes = String(data.getMonth() + 1).padStart(2, '0');
+      const ano = data.getFullYear();
+      const hora = String(data.getHours()).padStart(2, '0');
+      const minuto = String(data.getMinutes()).padStart(2, '0');
+      const segundo = String(data.getSeconds()).padStart(2, '0');
+      return `${dia}/${mes}/${ano} ${hora}:${minuto}:${segundo}`;
+    }
+
+    function mostrarErro(texto) {
+      const el = document.getElementById('mensagemErro');
+      el.textContent = texto;
+      el.style.display = 'block';
+    }
+
+    function esconderErro() {
+      const el = document.getElementById('mensagemErro');
+      el.textContent = '';
+      el.style.display = 'none';
+    }
+
+    function limparFormulario() {
+      document.getElementById('formSorteio').reset();
+      document.getElementById('semente').disabled = true;
+      document.getElementById('resultado').classList.add('hidden');
+      document.getElementById('informacoesTecnicas').classList.add('hidden');
+      esconderErro();
+    }
+
+    function copiarResumo() {
+      const dados = window.__ultimoSorteio;
+      if (!dados) return;
+
+      let texto = '';
+      texto += `Sistema de Sorteio Eletr√¥nico - ANAC\n`;
+      texto += `Curso/Bolsa/Evento: ${dados.nomeSorteio}\n`;
+      texto += `Processo SEI: ${dados.processoSei}\n`;
+      texto += `Data e hora: ${dados.dataHora}\n`;
+      texto += `Total de candidatos: ${dados.totalInscritos}\n`;
+      texto += `Vagas: ${dados.vagas}\n`;
+      texto += `Semente utilizada: ${dados.semente}\n\n`;
+      texto += `Resultado:\n`;
+
+      dados.lista.forEach((numero, indice) => {
+        texto += `${indice + 1}¬∫ - N¬∫ ${numero} - ${indice < dados.vagas ? 'Primeira chamada' : 'Lista de espera'}\n`;
+      });
+
+      navigator.clipboard.writeText(texto).then(() => {
+        alert('Resumo copiado para a √°rea de transfer√™ncia.');
+      });
+    }
+  </script>
 </body>
 </html>
